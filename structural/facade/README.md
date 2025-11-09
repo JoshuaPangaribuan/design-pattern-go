@@ -18,28 +18,77 @@ When working with complex subsystems, clients face challenges:
 2. **Subsystem Classes**: Complex classes that do the actual work (AccountService, PaymentService, etc.)
 3. **Client**: Uses the facade instead of subsystem directly
 
-## Structure
+## Diagrams
+
+### Class Diagram
 
 ```mermaid
 classDiagram
     class BankingFacade {
         <<Facade>>
-        +TransferMoney()
-        +OpenAccount()
+        -accountService AccountService
+        -paymentService PaymentService
+        -notificationService NotificationService
+        -complianceService ComplianceService
+        -auditService AuditService
+        +TransferMoney(from, to, amount) error
+        +OpenAccount(customerID, accountType) Account
+        +ProcessPayment(accountID, amount) error
     }
     class AccountService {
+        +GetAccount(id) Account
+        +VerifyAccount(id) bool
+        +UpdateBalance(id, amount)
     }
     class PaymentService {
+        +ProcessPayment(from, to, amount) error
+        +ValidatePayment(amount) bool
     }
     class NotificationService {
+        +SendNotification(recipient, message)
     }
     class ComplianceService {
+        +CheckCompliance(transaction) bool
+        +LogComplianceCheck(id)
+    }
+    class AuditService {
+        +LogTransaction(transaction)
+        +CreateAuditTrail(id)
     }
     
     BankingFacade ..> AccountService : uses
     BankingFacade ..> PaymentService : uses
     BankingFacade ..> NotificationService : uses
     BankingFacade ..> ComplianceService : uses
+    BankingFacade ..> AuditService : uses
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Facade as BankingFacade
+    participant AccountService
+    participant PaymentService
+    participant ComplianceService
+    participant NotificationService
+    participant AuditService
+    
+    Client->>Facade: TransferMoney("ACC001", "ACC002", $500)
+    Facade->>AccountService: VerifyAccount("ACC001")
+    AccountService-->>Facade: verified
+    Facade->>AccountService: VerifyAccount("ACC002")
+    AccountService-->>Facade: verified
+    Facade->>ComplianceService: CheckCompliance(transaction)
+    ComplianceService-->>Facade: approved
+    Facade->>PaymentService: ProcessPayment("ACC001", "ACC002", $500)
+    PaymentService-->>Facade: success
+    Facade->>NotificationService: SendNotification(customer, "Transfer completed")
+    Facade->>AuditService: LogTransaction(transaction)
+    Facade-->>Client: Transfer successful
+    
+    Note over Client,AuditService: Facade simplifies complex<br/>subsystem interactions
 ```
 
 ## Implementation Walkthrough

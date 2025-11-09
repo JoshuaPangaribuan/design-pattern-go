@@ -20,28 +20,63 @@ Creating complex objects with many optional parameters can be challenging:
 4. **Director (Optional)**: Orchestrates building steps in a specific order
 5. **Fluent Interface**: Methods return the builder for method chaining
 
-## Structure
+## Diagrams
+
+### Class Diagram
 
 ```mermaid
 classDiagram
     class CustomerProfile {
-        -customerID
-        -firstName
-        -lastName
-        -email
-        -address
-        -kycStatus
-        -riskLevel
+        -customerID string
+        -firstName string
+        -lastName string
+        -email string
+        -address string
+        -kycStatus string
+        -riskLevel string
+        -preferences map
+        +Display()
     }
     class CustomerProfileBuilder {
-        +SetCustomerID()
-        +SetPersonalInfo()
-        +SetAddress()
-        +SetKYCStatus()
-        +Build()
+        -profile CustomerProfile
+        +SetCustomerID(id) Builder
+        +SetPersonalInfo(...) Builder
+        +SetAddress(...) Builder
+        +SetKYCStatus(status) Builder
+        +SetRiskLevel(level) Builder
+        +SetPreferences(...) Builder
+        +Build() CustomerProfile
     }
     
     CustomerProfileBuilder ..> CustomerProfile : builds
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Builder as CustomerProfileBuilder
+    
+    Client->>Builder: NewCustomerProfileBuilder()
+    Builder-->>Client: builder instance
+    
+    Client->>Builder: SetCustomerID("CUST001")
+    Builder-->>Client: builder (fluent)
+    
+    Client->>Builder: SetPersonalInfo("John", "Doe", "john@example.com")
+    Builder-->>Client: builder (fluent)
+    
+    Client->>Builder: SetAddress("123 Main St", "City", "State", "12345")
+    Builder-->>Client: builder (fluent)
+    
+    Client->>Builder: SetKYCStatus("verified")
+    Builder-->>Client: builder (fluent)
+    
+    Client->>Builder: Build()
+    Builder->>Builder: Validate()
+    Builder->>Builder: Create CustomerProfile
+    Builder-->>Client: CustomerProfile instance
 ```
 
 ## Implementation Walkthrough

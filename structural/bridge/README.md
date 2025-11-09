@@ -19,36 +19,73 @@ When you have multiple dimensions of variation in a class hierarchy, you face:
 3. **Implementation Interface**: Low-level interface (PaymentProcessor)
 4. **Concrete Implementations**: Payment method-specific implementations (CreditCardProcessor, BankTransferProcessor)
 
-## Structure
+## Diagrams
+
+### Class Diagram
 
 ```mermaid
 classDiagram
     class Account {
         <<Abstraction>>
-        +ProcessPayment()
-    }
-    class PaymentProcessor {
-        <<Implementation>>
-        +ProcessPayment()
+        #processor PaymentProcessor
+        +ProcessPayment(amount) error
+        +GetAccountType() string
     }
     class CheckingAccount {
-        +ProcessPayment()
+        +ProcessPayment(amount) error
+        +GetAccountType() string
     }
     class SavingsAccount {
-        +ProcessPayment()
+        +ProcessPayment(amount) error
+        +GetAccountType() string
+    }
+    class InvestmentAccount {
+        +ProcessPayment(amount) error
+        +GetAccountType() string
+    }
+    class PaymentProcessor {
+        <<Implementation Interface>>
+        +ProcessPayment(amount) error
+        +GetProcessorName() string
     }
     class CreditCardProcessor {
-        +ProcessPayment()
+        +ProcessPayment(amount) error
+        +GetProcessorName() string
     }
     class BankTransferProcessor {
-        +ProcessPayment()
+        +ProcessPayment(amount) error
+        +GetProcessorName() string
+    }
+    class CryptoProcessor {
+        +ProcessPayment(amount) error
+        +GetProcessorName() string
     }
     
     Account <|-- CheckingAccount
     Account <|-- SavingsAccount
-    Account o-- PaymentProcessor
-    PaymentProcessor <|.. CreditCardProcessor : implements
-    PaymentProcessor <|.. BankTransferProcessor : implements
+    Account <|-- InvestmentAccount
+    Account o-- PaymentProcessor : uses
+    PaymentProcessor <|.. CreditCardProcessor
+    PaymentProcessor <|.. BankTransferProcessor
+    PaymentProcessor <|.. CryptoProcessor
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Account as CheckingAccount
+    participant Processor as CreditCardProcessor
+    
+    Client->>Account: ProcessPayment($500)
+    Account->>Account: Account-specific logic
+    Account->>Processor: ProcessPayment($500)
+    Processor->>Processor: Process credit card payment
+    Processor-->>Account: success
+    Account-->>Client: Payment processed
+    
+    Note over Client,Processor: Account and Processor<br/>vary independently
 ```
 
 ## Implementation Walkthrough

@@ -18,35 +18,68 @@ When creating objects, we often need flexibility in determining which class to i
 3. **Factory Function**: Creates the appropriate payment processor based on input
 4. **Client Code**: Uses the factory without knowing concrete types
 
-## Structure
+## Diagrams
+
+### Class Diagram
 
 ```mermaid
 classDiagram
     class PaymentMethod {
-        <<interface>>
-        +Process()
-        +Validate()
+        <<Interface>>
+        +ProcessPayment(amount) error
+        +Validate() error
+        +GetMethodName() string
     }
     class CreditCard {
-        +Process()
-        +Validate()
+        -cardNumber string
+        -expiryDate string
+        +ProcessPayment(amount) error
+        +Validate() error
+        +GetMethodName() string
     }
     class BankTransfer {
-        +Process()
-        +Validate()
+        -accountNumber string
+        -routingNumber string
+        +ProcessPayment(amount) error
+        +Validate() error
+        +GetMethodName() string
     }
     class Crypto {
-        +Process()
-        +Validate()
+        -walletAddress string
+        -currency string
+        +ProcessPayment(amount) error
+        +Validate() error
+        +GetMethodName() string
     }
-    class Factory {
-        +NewPaymentMethod(type)
+    class PaymentFactory {
+        +NewPaymentMethod(type, config) PaymentMethod
     }
     
-    PaymentMethod <|.. CreditCard : implements
-    PaymentMethod <|.. BankTransfer : implements
-    PaymentMethod <|.. Crypto : implements
-    Factory ..> PaymentMethod : creates
+    PaymentMethod <|.. CreditCard
+    PaymentMethod <|.. BankTransfer
+    PaymentMethod <|.. Crypto
+    PaymentFactory ..> PaymentMethod : creates
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Factory as PaymentFactory
+    participant Payment as PaymentMethod
+    
+    Client->>Factory: NewPaymentMethod("credit_card", config)
+    Factory->>Factory: Determine type
+    Factory->>Payment: new CreditCard(config)
+    Factory-->>Client: CreditCard instance
+    
+    Client->>Payment: Validate()
+    Payment-->>Client: validation result
+    
+    Client->>Payment: ProcessPayment($100)
+    Payment->>Payment: Process credit card payment
+    Payment-->>Client: success
 ```
 
 ## Implementation Walkthrough

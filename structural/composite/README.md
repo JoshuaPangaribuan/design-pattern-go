@@ -19,32 +19,67 @@ When dealing with tree structures where individual objects and compositions shou
 3. **Composite**: Objects that can contain children (TransactionGroup)
 4. **Client**: Treats all objects through the component interface
 
-## Structure
+## Diagrams
+
+### Class Diagram
 
 ```mermaid
 classDiagram
     class TransactionNode {
-        <<Component>>
-        +GetTotalAmount()
-        +Display()
+        <<Interface>>
+        +GetTotalAmount() float64
+        +Display() string
+        +GetID() string
     }
     class Transaction {
         <<Leaf>>
-        +GetTotalAmount()
-        +Display()
+        -id string
+        -amount float64
+        -description string
+        +GetTotalAmount() float64
+        +Display() string
+        +GetID() string
     }
     class TransactionGroup {
         <<Composite>>
-        -transactions
-        +GetTotalAmount()
-        +Display()
-        +Add()
-        +Remove()
+        -id string
+        -name string
+        -children List~TransactionNode~
+        +GetTotalAmount() float64
+        +Display() string
+        +GetID() string
+        +Add(child)
+        +Remove(child)
+        +GetChildren() List
     }
     
-    TransactionNode <|.. Transaction : implements
-    TransactionNode <|.. TransactionGroup : implements
+    TransactionNode <|.. Transaction
+    TransactionNode <|.. TransactionGroup
     TransactionGroup o-- TransactionNode : contains
+```
+
+### Tree Structure Example
+
+```mermaid
+graph TD
+    A["TransactionGroup: Monthly"] --> B["TransactionGroup: Week 1"]
+    A --> C["TransactionGroup: Week 2"]
+    B --> D["Transaction: TXN001"]
+    B --> E["Transaction: TXN002"]
+    C --> F["Transaction: TXN003"]
+    C --> G["TransactionGroup: Payments"]
+    G --> H["Transaction: TXN004"]
+    G --> I["Transaction: TXN005"]
+    
+    style A fill:#e1f5ff
+    style B fill:#e1f5ff
+    style C fill:#e1f5ff
+    style G fill:#e1f5ff
+    style D fill:#fff4e1
+    style E fill:#fff4e1
+    style F fill:#fff4e1
+    style H fill:#fff4e1
+    style I fill:#fff4e1
 ```
 
 ## Implementation Walkthrough

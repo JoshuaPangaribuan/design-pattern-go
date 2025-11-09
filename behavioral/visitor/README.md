@@ -19,6 +19,81 @@ When you need to perform operations on object structure:
 3. **Element Interface**: Declares accept method (Account)
 4. **Concrete Elements**: Implement accept to call appropriate visit method
 
+## Diagrams
+
+### Class Diagram
+
+```mermaid
+classDiagram
+    class Visitor {
+        <<Interface>>
+        +VisitCheckingAccount(account) float64
+        +VisitSavingsAccount(account) float64
+        +VisitInvestmentAccount(account) float64
+    }
+    class Account {
+        <<Interface>>
+        +Accept(visitor) float64
+        +GetAccountID() string
+        +GetBalance() float64
+    }
+    class CheckingAccount {
+        -accountID string
+        -balance float64
+        +Accept(visitor) float64
+    }
+    class SavingsAccount {
+        -accountID string
+        -balance float64
+        +Accept(visitor) float64
+    }
+    class InvestmentAccount {
+        -accountID string
+        -balance float64
+        +Accept(visitor) float64
+    }
+    class InterestCalculationVisitor {
+        +VisitCheckingAccount(account) float64
+        +VisitSavingsAccount(account) float64
+        +VisitInvestmentAccount(account) float64
+    }
+    class FeeCalculationVisitor {
+        +VisitCheckingAccount(account) float64
+        +VisitSavingsAccount(account) float64
+        +VisitInvestmentAccount(account) float64
+    }
+    class RiskAssessmentVisitor {
+        +VisitCheckingAccount(account) float64
+        +VisitSavingsAccount(account) float64
+        +VisitInvestmentAccount(account) float64
+    }
+    
+    Visitor <|.. InterestCalculationVisitor
+    Visitor <|.. FeeCalculationVisitor
+    Visitor <|.. RiskAssessmentVisitor
+    Account <|.. CheckingAccount
+    Account <|.. SavingsAccount
+    Account <|.. InvestmentAccount
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Portfolio as AccountPortfolio
+    participant Account as CheckingAccount
+    participant Visitor as InterestCalculationVisitor
+    
+    Client->>Portfolio: CalculateTotal(visitor)
+    Portfolio->>Account: Accept(visitor)
+    Account->>Visitor: VisitCheckingAccount(account)
+    Visitor->>Visitor: Calculate interest (balance * 0.01)
+    Visitor-->>Account: interest amount
+    Account-->>Portfolio: interest amount
+    Portfolio-->>Client: total interest
+```
+
 ## When to Use
 
 ✅ **Use when:**

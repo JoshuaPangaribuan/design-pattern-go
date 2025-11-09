@@ -19,25 +19,83 @@ When direct access to an object is problematic or needs control:
 3. **Proxy**: Controls access to RealSubject, adds additional behavior
 4. **Client**: Works with objects through Subject interface
 
-## Structure
+## Diagrams
+
+### Class Diagram
 
 ```mermaid
 classDiagram
     class RiskAssessmentService {
-        <<Subject Interface>>
-        +AssessRisk()
+        <<Interface>>
+        +AssessRisk(transactionID, amount) RiskLevel
+        +GetRiskScore(transactionID) float64
     }
     class RealRiskService {
-        +AssessRisk()
+        <<RealSubject>>
+        -connection DatabaseConnection
+        +AssessRisk(transactionID, amount) RiskLevel
+        +GetRiskScore(transactionID) float64
     }
     class RiskProxy {
-        -service RealRiskService
-        +AssessRisk()
+        <<Proxy>>
+        -realService RealRiskService
+        -cache map
+        -initialized bool
+        +AssessRisk(transactionID, amount) RiskLevel
+        +GetRiskScore(transactionID) float64
+        -initializeService()
+        -checkCache(key)
+    }
+    class CachingProxy {
+        <<Proxy Variant>>
+        -service RiskAssessmentService
+        -cache map
+        +AssessRisk(transactionID, amount) RiskLevel
+    }
+    class ProtectionProxy {
+        <<Proxy Variant>>
+        -service RiskAssessmentService
+        -userRole string
+        +AssessRisk(transactionID, amount) RiskLevel
+        -checkAccess()
     }
     
-    RiskAssessmentService <|.. RealRiskService : implements
-    RiskAssessmentService <|.. RiskProxy : implements
-    RiskProxy o-- RealRiskService : has
+    RiskAssessmentService <|.. RealRiskService
+    RiskAssessmentService <|.. RiskProxy
+    RiskAssessmentService <|.. CachingProxy
+    RiskAssessmentService <|.. ProtectionProxy
+    RiskProxy o-- RealRiskService : controls access to
+    CachingProxy o-- RiskAssessmentService : wraps
+    ProtectionProxy o-- RiskAssessmentService : wraps
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Proxy as RiskProxy
+    participant RealService as RealRiskService
+    
+    Client->>Proxy: AssessRisk("TXN001", $1000)
+    Proxy->>Proxy: Check if initialized
+    alt Not initialized
+        Proxy->>RealService: Lazy initialization
+        RealService->>RealService: Connect to database
+        RealService-->>Proxy: Service ready
+    end
+    Proxy->>Proxy: Check cache
+    alt Cache miss
+        Proxy->>RealService: AssessRisk("TXN001", $1000)
+        RealService->>RealService: Perform risk assessment
+        RealService-->>Proxy: RiskLevel
+        Proxy->>Proxy: Store in cache
+    else Cache hit
+        Proxy->>Proxy: Return cached result
+    end
+    Proxy-->>Client: RiskLevel
+    
+    Note over Client,RealService: Proxy adds caching and<br/>lazy initialization
 ```
 
 ## Implementation Walkthrough

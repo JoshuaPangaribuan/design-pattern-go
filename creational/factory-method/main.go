@@ -154,7 +154,7 @@ func processPayment(paymentType PaymentType, details map[string]string, amount f
 }
 
 func main() {
-	fmt.Println("=== Factory Method Pattern: JoshBank Payment Processing ===\n")
+	fmt.Println("=== Factory Method Pattern: JoshBank Payment Processing ===")
 
 	// Example 1: Credit Card Payment
 	processPayment(CreditCardType, map[string]string{

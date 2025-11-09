@@ -19,35 +19,106 @@ When you need to create families of related objects without specifying their con
 4. **Concrete Products**: Implement product interfaces for each family
 5. **Client Code**: Uses factories and products through their interfaces
 
-## Structure
+## Diagrams
+
+### Class Diagram
 
 ```mermaid
 classDiagram
     class BankingProductFactory {
-        <<interface>>
-        +CreateAccount()
-        +CreateCard()
-        +CreateLoan()
+        <<Interface>>
+        +CreateAccount() Account
+        +CreateCard() Card
+        +CreateLoan() Loan
     }
     class PersonalBankingFactory {
-        +CreateAccount()
-        +CreateCard()
-        +CreateLoan()
+        +CreateAccount() Account
+        +CreateCard() Card
+        +CreateLoan() Loan
     }
     class BusinessBankingFactory {
-        +CreateAccount()
-        +CreateCard()
-        +CreateLoan()
+        +CreateAccount() Account
+        +CreateCard() Card
+        +CreateLoan() Loan
+    }
+    class Account {
+        <<Interface>>
+        +GetAccountType() string
+        +GetInterestRate() float64
+        +GetMinimumBalance() float64
+    }
+    class Card {
+        <<Interface>>
+        +GetCardType() string
+        +GetCreditLimit() float64
+        +GetAnnualFee() float64
+    }
+    class Loan {
+        <<Interface>>
+        +GetLoanType() string
+        +GetInterestRate() float64
+        +GetMaxAmount() float64
     }
     class PersonalAccount {
+        +GetAccountType() string
+        +GetInterestRate() float64
+        +GetMinimumBalance() float64
     }
     class BusinessAccount {
+        +GetAccountType() string
+        +GetInterestRate() float64
+        +GetMinimumBalance() float64
+    }
+    class PersonalCard {
+        +GetCardType() string
+        +GetCreditLimit() float64
+        +GetAnnualFee() float64
+    }
+    class BusinessCard {
+        +GetCardType() string
+        +GetCreditLimit() float64
+        +GetAnnualFee() float64
     }
     
-    BankingProductFactory <|.. PersonalBankingFactory : implements
-    BankingProductFactory <|.. BusinessBankingFactory : implements
+    BankingProductFactory <|.. PersonalBankingFactory
+    BankingProductFactory <|.. BusinessBankingFactory
+    Account <|.. PersonalAccount
+    Account <|.. BusinessAccount
+    Card <|.. PersonalCard
+    Card <|.. BusinessCard
+    Loan <|.. PersonalLoan
+    Loan <|.. BusinessLoan
     PersonalBankingFactory ..> PersonalAccount : creates
+    PersonalBankingFactory ..> PersonalCard : creates
+    PersonalBankingFactory ..> PersonalLoan : creates
     BusinessBankingFactory ..> BusinessAccount : creates
+    BusinessBankingFactory ..> BusinessCard : creates
+    BusinessBankingFactory ..> BusinessLoan : creates
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Factory as PersonalBankingFactory
+    participant Account as PersonalAccount
+    participant Card as PersonalCard
+    participant Loan as PersonalLoan
+    
+    Client->>Factory: CreateAccount()
+    Factory->>Account: new PersonalAccount()
+    Factory-->>Client: PersonalAccount
+    
+    Client->>Factory: CreateCard()
+    Factory->>Card: new PersonalCard()
+    Factory-->>Client: PersonalCard
+    
+    Client->>Factory: CreateLoan()
+    Factory->>Loan: new PersonalLoan()
+    Factory-->>Client: PersonalLoan
+    
+    Note over Client,Loan: All products are compatible<br/>from the same family
 ```
 
 ## Implementation Walkthrough

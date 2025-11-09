@@ -20,6 +20,94 @@ When you need to parameterize objects with operations:
 4. **Invoker**: Asks command to execute (BankingController)
 5. **Client**: Creates and configures commands
 
+## Diagrams
+
+### Class Diagram
+
+```mermaid
+classDiagram
+    class BankingCommand {
+        <<Interface>>
+        +Execute()
+        +Undo()
+        +GetDescription()
+    }
+    class DepositCommand {
+        -account Account
+        -amount float64
+        +Execute()
+        +Undo()
+    }
+    class WithdrawCommand {
+        -account Account
+        -amount float64
+        -success bool
+        +Execute()
+        +Undo()
+    }
+    class TransferCommand {
+        -transferService TransferService
+        -from Account
+        -to Account
+        -amount float64
+        +Execute()
+        +Undo()
+    }
+    class MacroCommand {
+        -commands List~BankingCommand~
+        +Execute()
+        +Undo()
+    }
+    class BankingController {
+        -history List~BankingCommand~
+        +ExecuteCommand(cmd)
+        +UndoLast()
+    }
+    class Account {
+        -accountID string
+        -balance float64
+        +Deposit(amount)
+        +Withdraw(amount)
+    }
+    class TransferService {
+        +Transfer(from, to, amount)
+    }
+    
+    BankingCommand <|.. DepositCommand
+    BankingCommand <|.. WithdrawCommand
+    BankingCommand <|.. TransferCommand
+    BankingCommand <|.. MacroCommand
+    DepositCommand --> Account : uses
+    WithdrawCommand --> Account : uses
+    TransferCommand --> TransferService : uses
+    BankingController --> BankingCommand : executes
+    MacroCommand --> BankingCommand : contains
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Controller as BankingController
+    participant Command as DepositCommand
+    participant Receiver as Account
+    
+    Client->>Command: Create(command)
+    Client->>Controller: ExecuteCommand(command)
+    Controller->>Command: Execute()
+    Command->>Receiver: Deposit(amount)
+    Receiver-->>Command: Balance updated
+    Command-->>Controller: Success
+    Controller->>Controller: Add to history
+    
+    Note over Controller: Later...
+    Client->>Controller: UndoLast()
+    Controller->>Command: Undo()
+    Command->>Receiver: Withdraw(amount)
+    Receiver-->>Command: Balance restored
+```
+
 ## When to Use
 
 ✅ **Use when:**

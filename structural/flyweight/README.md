@@ -19,23 +19,71 @@ When creating many similar objects leads to memory issues:
 3. **Flyweight Factory**: Creates and manages flyweight objects (CurrencyFactory)
 4. **Client**: Maintains extrinsic state and uses flyweights (Transaction)
 
-## Structure
+## Diagrams
+
+### Class Diagram
 
 ```mermaid
 classDiagram
-    class CurrencyFactory {
-        -currencies map
-        +GetCurrency()
-    }
     class CurrencyInfo {
-        <<Flyweight>>
-        -code (shared)
-        -symbol (shared)
-        -exchangeRate (shared)
-        +FormatAmount(amount)
+        <<Flyweight Interface>>
+        +FormatAmount(amount) string
+        +ConvertToUSD(amount) float64
+        +GetSymbol() string
+    }
+    class USDCurrency {
+        <<Concrete Flyweight>>
+        -code string
+        -symbol string
+        -exchangeRate float64
+        +FormatAmount(amount) string
+        +ConvertToUSD(amount) float64
+        +GetSymbol() string
+    }
+    class EURCurrency {
+        <<Concrete Flyweight>>
+        -code string
+        -symbol string
+        -exchangeRate float64
+        +FormatAmount(amount) string
+        +ConvertToUSD(amount) float64
+        +GetSymbol() string
+    }
+    class CurrencyFactory {
+        -currencies map~string~CurrencyInfo~
+        +GetCurrency(code) CurrencyInfo
+        +RegisterCurrency(code, currency)
+    }
+    class Transaction {
+        <<Client>>
+        -id string
+        -amount float64
+        -currency CurrencyInfo
+        +GetFormattedAmount() string
     }
     
-    CurrencyFactory ..> CurrencyInfo : creates/manages
+    CurrencyInfo <|.. USDCurrency
+    CurrencyInfo <|.. EURCurrency
+    CurrencyFactory --> CurrencyInfo : creates/manages
+    Transaction --> CurrencyInfo : uses
+```
+
+### Memory Optimization Diagram
+
+```mermaid
+graph LR
+    A["1,000,000 Transactions"] --> B["USDCurrency<br/>(1 instance)"]
+    A --> C["EURCurrency<br/>(1 instance)"]
+    A --> D["GBPCurrency<br/>(1 instance)"]
+    
+    E["Without Flyweight:<br/>1,000,000 currency objects"] --> F["High Memory Usage"]
+    G["With Flyweight:<br/>3 currency objects"] --> H["Low Memory Usage"]
+    
+    style B fill:#e1f5ff
+    style C fill:#e1f5ff
+    style D fill:#e1f5ff
+    style F fill:#ffcccc
+    style H fill:#ccffcc
 ```
 
 ## Implementation Walkthrough

@@ -18,23 +18,73 @@ Creating new objects from scratch can be expensive when:
 3. **Prototype Registry (Optional)**: Stores and manages prototype instances
 4. **Client Code**: Clones prototypes instead of creating from scratch
 
-## Structure
+## Diagrams
+
+### Class Diagram
 
 ```mermaid
 classDiagram
     class AccountTemplate {
-        <<interface>>
-        +Clone()
+        <<Interface>>
+        +Clone() AccountTemplate
+        +GetAccountType() string
+        +GetInterestRate() float64
     }
     class CheckingAccount {
-        +Clone()
+        -accountType string
+        -interestRate float64
+        -features map
+        +Clone() AccountTemplate
+        +GetAccountType() string
+        +GetInterestRate() float64
     }
     class SavingsAccount {
-        +Clone()
+        -accountType string
+        -interestRate float64
+        -features map
+        +Clone() AccountTemplate
+        +GetAccountType() string
+        +GetInterestRate() float64
+    }
+    class InvestmentAccount {
+        -accountType string
+        -interestRate float64
+        -features map
+        +Clone() AccountTemplate
+        +GetAccountType() string
+        +GetInterestRate() float64
+    }
+    class AccountRegistry {
+        -templates map
+        +RegisterTemplate(name, template)
+        +GetTemplate(name) AccountTemplate
     }
     
-    AccountTemplate <|.. CheckingAccount : implements
-    AccountTemplate <|.. SavingsAccount : implements
+    AccountTemplate <|.. CheckingAccount
+    AccountTemplate <|.. SavingsAccount
+    AccountTemplate <|.. InvestmentAccount
+    AccountRegistry --> AccountTemplate : manages
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Registry as AccountRegistry
+    participant Prototype as CheckingAccount
+    participant Clone as CheckingAccount
+    
+    Client->>Registry: GetTemplate("checking")
+    Registry->>Prototype: Get template
+    Registry-->>Client: CheckingAccount prototype
+    
+    Client->>Prototype: Clone()
+    Prototype->>Clone: Deep copy all fields
+    Prototype-->>Client: New CheckingAccount instance
+    
+    Client->>Clone: Customize for customer
+    Note over Clone: Modify fields as needed
 ```
 
 ## Implementation Walkthrough

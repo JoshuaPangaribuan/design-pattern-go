@@ -19,24 +19,60 @@ When you need to use a class with an incompatible interface, you face challenges
 3. **Adapter**: Wraps the adaptee and implements the target interface
 4. **Client**: Uses the target interface
 
-## Structure
+## Diagrams
+
+### Class Diagram
 
 ```mermaid
 classDiagram
     class JoshBankPaymentProcessor {
-        <<interface>>
-        +ProcessPayment()
+        <<Interface>>
+        +ProcessPayment(amount, currency) PaymentResult
+        +RefundPayment(transactionID, amount) error
     }
     class LegacyBankAdapter {
         -legacyBank LegacyBankAPI
-        +ProcessPayment()
+        +ProcessPayment(amount, currency) PaymentResult
+        +RefundPayment(transactionID, amount) error
+    }
+    class ExternalGatewayAdapter {
+        -gateway ExternalGatewayAPI
+        +ProcessPayment(amount, currency) PaymentResult
+        +RefundPayment(transactionID, amount) error
     }
     class LegacyBankAPI {
         <<Adaptee>>
+        +CreateTransaction(amountInCents, curr, desc) string
+        +ProcessRefund(transactionID, amountInCents) error
+    }
+    class ExternalGatewayAPI {
+        <<Adaptee>>
+        +Charge(amount, currency) Transaction
+        +Reverse(transactionID) error
     }
     
-    JoshBankPaymentProcessor <|.. LegacyBankAdapter : implements
-    LegacyBankAdapter o-- LegacyBankAPI : has
+    JoshBankPaymentProcessor <|.. LegacyBankAdapter
+    JoshBankPaymentProcessor <|.. ExternalGatewayAdapter
+    LegacyBankAdapter o-- LegacyBankAPI : wraps
+    ExternalGatewayAdapter o-- ExternalGatewayAPI : wraps
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Adapter as LegacyBankAdapter
+    participant Adaptee as LegacyBankAPI
+    
+    Client->>Adapter: ProcessPayment($100, "USD")
+    Adapter->>Adapter: Convert $100 to cents (10000)
+    Adapter->>Adaptee: CreateTransaction(10000, "USD", "Payment")
+    Adaptee-->>Adapter: transactionID
+    Adapter->>Adapter: Convert to PaymentResult
+    Adapter-->>Client: PaymentResult
+    
+    Note over Client,Adaptee: Adapter translates between<br/>incompatible interfaces
 ```
 
 ## Implementation Walkthrough

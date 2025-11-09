@@ -19,6 +19,85 @@ When you need to traverse a collection without exposing its internal structure:
 3. **Aggregate Interface**: Declares method to create iterator (Collection)
 4. **Concrete Aggregate**: Returns appropriate iterator
 
+## Diagrams
+
+### Class Diagram
+
+```mermaid
+classDiagram
+    class Iterator {
+        <<Interface>>
+        +HasNext() bool
+        +Next() Transaction
+        +Reset()
+    }
+    class Collection {
+        <<Interface>>
+        +CreateIterator() Iterator
+        +Add(transaction)
+    }
+    class ArrayIterator {
+        -history ArrayTransactionHistory
+        -index int
+        +HasNext() bool
+        +Next() Transaction
+        +Reset()
+    }
+    class LinkedListIterator {
+        -current TransactionNode
+        -head TransactionNode
+        +HasNext() bool
+        +Next() Transaction
+        +Reset()
+    }
+    class ArrayTransactionHistory {
+        -transactions List~Transaction~
+        +CreateIterator() Iterator
+        +Add(transaction)
+    }
+    class LinkedListTransactionHistory {
+        -head TransactionNode
+        +CreateIterator() Iterator
+        +Add(transaction)
+    }
+    class Transaction {
+        +ID string
+        +Amount float64
+        +Type string
+    }
+    
+    Iterator <|.. ArrayIterator
+    Iterator <|.. LinkedListIterator
+    Collection <|.. ArrayTransactionHistory
+    Collection <|.. LinkedListTransactionHistory
+    ArrayIterator --> ArrayTransactionHistory : uses
+    LinkedListIterator --> LinkedListTransactionHistory : uses
+    ArrayTransactionHistory --> Transaction : contains
+    LinkedListTransactionHistory --> Transaction : contains
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Collection as ArrayTransactionHistory
+    participant Iterator as ArrayIterator
+    
+    Client->>Collection: CreateIterator()
+    Collection-->>Client: Iterator instance
+    
+    loop While HasNext()
+        Client->>Iterator: HasNext()
+        Iterator-->>Client: true
+        Client->>Iterator: Next()
+        Iterator-->>Client: Transaction
+    end
+    
+    Client->>Iterator: Reset()
+    Iterator->>Iterator: index = 0
+```
+
 ## When to Use
 
 ✅ **Use when:**

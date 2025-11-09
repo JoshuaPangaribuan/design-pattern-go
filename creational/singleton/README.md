@@ -18,18 +18,46 @@ In many applications, we need to ensure that a class has only one instance and p
 3. **sync.Once**: Ensures thread-safe initialization
 4. **GetInstance() Method**: Public method to access the singleton instance
 
-## Structure
+## Diagrams
+
+### Class Diagram
 
 ```mermaid
 classDiagram
     class JoshBankConfigManager {
-        <<Singleton>>
-        -instance *JoshBankConfigManager
-        -once sync.Once
-        +GetInstance()
-        +GetConfig(key)
-        +SetConfig(key, val)
+        -config map~string~string~
+        +GetInstance() *JoshBankConfigManager
+        +GetConfig(key) string
+        +SetConfig(key, value)
+        +LoadConfig()
     }
+    note for JoshBankConfigManager "Package-level variables:\n- instance *JoshBankConfigManager\n- once sync.Once"
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client1
+    participant Client2
+    participant Singleton as JoshBankConfigManager
+    
+    Client1->>Singleton: GetInstance()
+    Singleton->>Singleton: sync.Once.Do(init)
+    Singleton->>Singleton: Load config from file
+    Singleton-->>Client1: instance
+    
+    Client2->>Singleton: GetInstance()
+    Singleton->>Singleton: sync.Once.Do(init)
+    Note over Singleton: Already initialized, skip
+    Singleton-->>Client2: same instance
+    
+    Client1->>Singleton: GetConfig("database_url")
+    Singleton-->>Client1: config value
+    
+    Client2->>Singleton: SetConfig("timeout", "30")
+    Singleton->>Singleton: Update config
+    Note over Singleton: Both clients share<br/>the same instance
 ```
 
 ## Implementation Walkthrough

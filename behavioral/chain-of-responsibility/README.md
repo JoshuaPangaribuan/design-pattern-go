@@ -18,33 +18,59 @@ When a request needs to be processed by multiple handlers:
 2. **Concrete Handlers**: Implement handling logic and decide to process or pass
 3. **Client**: Initiates request to the first handler in chain
 
-## Structure
+## Diagrams
+
+### Class Diagram
 
 ```mermaid
 classDiagram
     class Handler {
         <<Interface>>
-        +Handle()
-        +SetNext()
+        +Handle(request)
+        +SetNext(handler)
+    }
+    class BaseHandler {
+        -next Handler
+        +SetNext(handler)
+        +HandleNext(request)
     }
     class LowAmountHandler {
-        +Handle()
-        +SetNext()
+        +Handle(request)
     }
     class MediumAmountHandler {
-        +Handle()
-        +SetNext()
+        +Handle(request)
     }
     class ManagerHandler {
-        +Handle()
-        +SetNext()
+        +Handle(request)
+    }
+    class DirectorHandler {
+        +Handle(request)
     }
     
-    Handler <|.. LowAmountHandler : implements
-    Handler <|.. MediumAmountHandler : implements
-    Handler <|.. ManagerHandler : implements
-    LowAmountHandler --> MediumAmountHandler : next
-    MediumAmountHandler --> ManagerHandler : next
+    Handler <|.. BaseHandler
+    BaseHandler <|-- LowAmountHandler
+    BaseHandler <|-- MediumAmountHandler
+    BaseHandler <|-- ManagerHandler
+    BaseHandler <|-- DirectorHandler
+    Handler <-- BaseHandler : next
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant LowHandler as LowAmountHandler
+    participant MediumHandler as MediumAmountHandler
+    participant ManagerHandler
+    participant DirectorHandler
+    
+    Client->>LowHandler: Handle(request $5000)
+    LowHandler->>LowHandler: Check amount <= $1000
+    LowHandler->>MediumHandler: HandleNext(request)
+    MediumHandler->>MediumHandler: Check amount <= $10000
+    MediumHandler->>MediumHandler: Process & Approve
+    MediumHandler-->>Client: true
 ```
 
 ## Implementation Walkthrough

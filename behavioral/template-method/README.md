@@ -18,6 +18,70 @@ When algorithms have similar structure but differ in steps:
 2. **Concrete Classes**: Implement abstract steps
 3. **Template Method**: Defines algorithm structure (final)
 
+## Diagrams
+
+### Class Diagram
+
+```mermaid
+classDiagram
+    class KYCVerification {
+        <<Interface>>
+        +CollectDocuments()
+        +VerifyIdentity()
+        +CheckCompliance()
+        +ApproveAccount()
+        +RejectAccount()
+    }
+    class BaseKYCVerification {
+        -verification KYCVerification
+        +Verify()* template method
+        #shouldApprove() bool
+    }
+    class PersonalAccountKYC {
+        -customerName string
+        +CollectDocuments()
+        +VerifyIdentity()
+        +CheckCompliance()
+        +ApproveAccount()
+        +RejectAccount()
+    }
+    class BusinessAccountKYC {
+        -businessName string
+        +CollectDocuments()
+        +VerifyIdentity()
+        +CheckCompliance()
+        +ApproveAccount()
+        +RejectAccount()
+    }
+    
+    KYCVerification <|.. PersonalAccountKYC
+    KYCVerification <|.. BusinessAccountKYC
+    BaseKYCVerification --> KYCVerification : uses
+    PersonalAccountKYC --|> BaseKYCVerification
+    BusinessAccountKYC --|> BaseKYCVerification
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Base as BaseKYCVerification
+    participant Personal as PersonalAccountKYC
+    
+    Client->>Base: Verify() template method
+    Base->>Personal: CollectDocuments()
+    Personal-->>Base: Documents collected
+    Base->>Personal: VerifyIdentity()
+    Personal-->>Base: Identity verified
+    Base->>Personal: CheckCompliance()
+    Personal-->>Base: Compliance checked
+    Base->>Base: shouldApprove()
+    Base->>Personal: ApproveAccount()
+    Personal-->>Base: Account approved
+    Base-->>Client: Verification complete
+```
+
 ## When to Use
 
 ✅ **Use when:**

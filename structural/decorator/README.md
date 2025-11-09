@@ -19,37 +19,79 @@ When you need to add responsibilities to objects dynamically without affecting o
 3. **Decorator**: Abstract decorator that wraps a component (TransactionDecorator)
 4. **Concrete Decorators**: Add specific responsibilities (LoggingDecorator, ValidationDecorator)
 
-## Structure
+## Diagrams
+
+### Class Diagram
 
 ```mermaid
 classDiagram
     class Transaction {
-        <<Component>>
-        +GetAmount()
-        +Process()
+        <<Interface>>
+        +Process() error
+        +GetAmount() float64
+        +GetDescription() string
     }
     class BaseTransaction {
-        <<Base>>
-        +GetAmount()
-        +Process()
+        -amount float64
+        -description string
+        +Process() error
+        +GetAmount() float64
+        +GetDescription() string
     }
-    class Decorator {
-        -transaction Transaction
-        +GetAmount()
-        +Process()
+    class TransactionDecorator {
+        <<Abstract>>
+        #transaction Transaction
+        +Process() error
+        +GetAmount() float64
+        +GetDescription() string
     }
     class LoggingDecorator {
-        +Process()
+        +Process() error
     }
     class ValidationDecorator {
-        +Process()
+        +Process() error
+    }
+    class EncryptionDecorator {
+        +Process() error
+    }
+    class AuditDecorator {
+        +Process() error
     }
     
-    Transaction <|.. BaseTransaction : implements
-    Transaction <|.. Decorator : implements
-    Decorator <|-- LoggingDecorator
-    Decorator <|-- ValidationDecorator
-    Decorator o-- Transaction : wraps
+    Transaction <|.. BaseTransaction
+    Transaction <|.. TransactionDecorator
+    TransactionDecorator <|-- LoggingDecorator
+    TransactionDecorator <|-- ValidationDecorator
+    TransactionDecorator <|-- EncryptionDecorator
+    TransactionDecorator <|-- AuditDecorator
+    TransactionDecorator o-- Transaction : wraps
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Base as BaseTransaction
+    participant Logging as LoggingDecorator
+    participant Validation as ValidationDecorator
+    
+    Client->>Base: new BaseTransaction($100)
+    Client->>Logging: Wrap(BaseTransaction)
+    Client->>Validation: Wrap(LoggingDecorator)
+    
+    Note over Client,Validation: Decorators can be stacked
+    
+    Client->>Validation: Process()
+    Validation->>Validation: Validate amount
+    Validation->>Logging: Process()
+    Logging->>Logging: Log transaction start
+    Logging->>Base: Process()
+    Base->>Base: Process payment
+    Base-->>Logging: success
+    Logging->>Logging: Log transaction end
+    Logging-->>Validation: success
+    Validation-->>Client: success
 ```
 
 ## Implementation Walkthrough
